@@ -1,0 +1,18 @@
+{
+    "name": "Captcha Solver",
+    "version": "1.0.0",
+    "description": "The browser extension that automatically detects the captcha and sends it to the API to be solved.",
+    "manifest_version": 3,
+    "content_scripts": [
+        {
+            "matches": [
+                "https://hs.iys.org.tr/*"
+            ],
+            "js": [
+                "scripts/content.js"
+            ]
+            
+        }
+    ]
+    
+}
