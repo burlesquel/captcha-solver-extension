@@ -4,7 +4,7 @@ try {
     const parent = document.querySelector('body')
     let observer = new MutationObserver(async (mutations) => {
         const solved = document.getElementById(solved_label_id)
-        if(solved) return
+        if (solved) return
 
         for (let mutation of mutations) {
             if (Array.from(mutation.target.childNodes).some(child => child.className.includes('captchaimg'))) {
@@ -12,19 +12,36 @@ try {
                 input.placeholder = 'Captcha çözülüyor..'
 
                 const captcha = mutation.target.getElementsByTagName('svg')[0] || mutation.target.getElementsByTagName('img')[0]
-                
-                const response = await fetch(`https://captcha-resolver-o28t.onrender.com/${captcha.tagName}`, {
-                    body: JSON.stringify(captcha.tagName === "SVG" ? {svg:captcha.outerHTML}: {img:captcha.outerHTML}),
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                })
+                let response
+                if (captcha.tagName === "SVG") {
+                    response = await fetch(`https://captcha-resolver-o28t.onrender.com/svg`, {
+                        body: JSON.stringify({ svg: captcha.outerHTML }),
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                }
+                else if(captcha.tagName === "IMG") {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = captcha.width;
+                    canvas.height = captcha.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(captcha, 0, 0);
+                    const dataUrl = canvas.toDataURL('image/jpeg');
+                    response = await fetch(`https://captcha-resolver-o28t.onrender.com/img`, {
+                        body: JSON.stringify({ img: dataUrl }),
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                }
                 const result = await response.json()
-                const resultText = result.data.join().replaceAll(',','')
+                const resultText = result.data.join().replaceAll(',', '')
                 const span = document.createElement('span')
                 const text = document.createTextNode(resultText)
                 span.appendChild(text)
                 span.id = solved_label_id
                 mutation.target.appendChild(span)
+
+
             }
 
         }
